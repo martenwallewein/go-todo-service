@@ -33,7 +33,7 @@ func (tm *TodoMonth) GetTodaysTasks() []*TodoItem {
 	todaysTasks := make([]*TodoItem, 0)
 	now := time.Now()
 	for _, item := range tm.Items {
-		if item.Day.Day() == now.Day() && item.Day.Year() == now.Year() && item.Day.Month() == now.Month() {
+		if dayEqual(item.Day, now) {
 			todaysTasks = append(todaysTasks, item)
 		}
 	}

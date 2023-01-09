@@ -110,6 +110,12 @@ func (ts *TodoService) CompleteTodayTodo(task string) error {
 }
 
 func (ts *TodoService) GetTodaysTodos() ([]*markdown.TodoItem, error) {
+
+	_, err := ts.PrepareRepo()
+	if err != nil {
+		return nil, err
+	}
+
 	tl, err := ts.LoadTodoList()
 	if err != nil {
 		return nil, err
