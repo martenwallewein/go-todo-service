@@ -1,0 +1,42 @@
+## 01/2023
+- goals:
+    - [ ] Telegram message bot mit Expense Tracker + Time tracking
+    - [ ] Hercules Paper submission
+    - [ ] BitTorrent Paper Short CR
+    - [ ] Reisepässe + Reise Miami planen
+    - [ ] Edu Network + SCIONLab Maintenance
+    - [ ] Einkommensnachweise Stipendium und Barmer 
+    - [ ] Telegram Helens Tabletten, todo Listen App 
+- todos:   
+    - 02.01:
+        - [x] Netsys Meeting Reminder / fragen
+        - [x] Deploy expense tracker  to prod vm
+        - [x] Implement csv parsing for kollegefrechdachs
+        - [x] adapt tcp cwnd and test again https://www.tecchannel.de/a/tcp-ip-tuning-fuer-linux,429773,6
+        - [x] Paper review David asked for
+        - [x] Find a good pdf reader to read books on phone
+    - 03.01
+        - [x] Adrian antworten Hercules
+        - [x] Write JP for complete results of kreonet experiment and why second figure only iperf
+        - [x] Fix congestion control for multi-queue hercules , test multi-queue 
+        - [x] Change hugepage size boot param and reboot
+        - [x] Start with handwriting instead of youtube shorts
+        - [x] Ffw email Verlängerung 
+    - 04.01
+        - [ ] Complete custom proto for fn-copy, Write Graeme
+        - [ ] Add further docdoc features to todolist, implement them
+        - [ ] Hercules meeting invitation
+        - [ ] SCIONLab roaster day
+        - [ ] Thinking day!
+        - [ ] SCIONLab nodes reboot
+    - 05.01
+        - [ ] Reisepass termine besprechen Helen
+        - [ ] Create new docker based ca setup for bridges, fix auth issue with anapaya user, support multiple users
+        - [ ] Hercules Experiments, 200G gridFTP and bbcp benchmarks, and also hercules if available
+        - [ ] SCIONLab maintenance improvement?
+        - [ ] Complete Kollegefrechdachs TODOs
+    - 06.01
+        - [ ] Daniel Ubuntu Server noixes via IP/Port installieren
+        - [ ] Shorten BitTorrent Paper for NOMS2023
+    - 07.01
+        - [ ] 
