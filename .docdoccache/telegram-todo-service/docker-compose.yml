@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  telegram-todo-service:
+    image: telegram-todo-service:1.0.3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.main.rule=Host(`todo-service.martengartner.com`)"
+      - "traefik.http.routers.main.tls.certresolver=myresolver"
+      - "traefik.http.services.main.loadbalancer.server.port=8880"
+    environment:
+      - TODO_REPO_PATH=/tmp/todo-service/
+      - TODO_REPO_GIT_URL=git@github.com:martenwallewein/notes.git
+    volumes:
+      - "/root/.ssh/:/root/.ssh"
+      - "/root/.git/:/root/git"

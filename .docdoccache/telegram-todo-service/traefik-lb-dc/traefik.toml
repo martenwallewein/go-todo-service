@@ -1,0 +1,17 @@
+# static configuration
+
+[log]
+filePath = "/access.log"
+format = "json"
+level = "DEBUG"
+
+
+[providers.docker]
+
+
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+
+  [entryPoints.websecure]
+    address = ":443"
