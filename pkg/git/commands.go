@@ -93,7 +93,7 @@ func (r *GitRepo) CommitAll(message string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to add files to git repo: %s", errStr)
 	}
-	err, _, errStr = cmdexec.ExecInFolder(r.Path, "git", "commit", "-m", message)
+	err, _, errStr = cmdexec.ExecInFolder(r.Path, "git", "commit", "-m", fmt.Sprintf("'%s'", message))
 	if err != nil {
 		return fmt.Errorf("Failed to commit to git repo: %s", errStr)
 	}

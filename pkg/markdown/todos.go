@@ -42,12 +42,17 @@ func (tm *TodoMonth) GetTodaysTasks() []*TodoItem {
 }
 
 func (tm *TodoMonth) CompleteTodayTask(task string) bool {
+	today := time.Now()
+	for _, item := range tm.Items {
+		if !dayEqual(item.Day, today) {
+			continue
+		}
 
-	for index, item := range tm.Items {
+		logrus.Warn("Checking ", item.Task, " to match ", task, " with result ", strings.Index(item.Task, task))
 		if strings.Index(item.Task, task) >= 0 {
 			item.Done = true
 			// Since these are not pointers we need to update the element
-			tm.Items[index] = item
+			// tm.Items[index] = item
 			return false
 		}
 	}
