@@ -66,11 +66,22 @@ func dayEqual(v, today time.Time) bool {
 	return v.Day() == today.Day() && v.Month() == today.Month() && v.Year() == today.Year()
 }
 
-func insertTodoItem(list []*TodoItem, c *TodoItem, i int) []*TodoItem {
+/*func insertTodoItem(list []*TodoItem, c *TodoItem, i int) []*TodoItem {
 	if i == len(list)-1 {
 		return append(list, c)
 	}
 	return append(list[:(i+1)], append([]*TodoItem{c}, list[(i+1):]...)...)
+}*/
+
+func InsertIntoSliceAtIndex[T any](destination []T, element T, index int) []T {
+	if len(destination) == index {
+		return append(destination, element)
+	}
+
+	destination = append(destination[:index+1], destination[index:]...) // index < len(a)
+	destination[index] = element
+
+	return destination
 }
 
 func (tm *TodoMonth) AddTodayTask(task string, completed bool) {
@@ -79,32 +90,25 @@ func (tm *TodoMonth) AddTodayTask(task string, completed bool) {
 
 	todaysTasks := tm.GetTodaysTasks()
 	num := len(todaysTasks) + 1
-
-	// Find last today item and insert after
-	itemFound := false
-	today := time.Now()
-	target := 0
-	for i, v := range tm.Items {
-		if dayEqual(v.Day, today) {
-			if !itemFound {
-				itemFound = true
-				target = i
-				continue
-			}
-		} else {
-			if itemFound {
-				target = i - 1
-				break
-			}
-		}
-	}
-	logrus.Info("Inserting at index ", target)
 	newItem := &TodoItem{
 		Done: completed,
 		Task: fmt.Sprintf("%d) %s", num, task),
 		Day:  time.Now(),
 	}
-	insertTodoItem(tm.Items, newItem, target)
+	if len(todaysTasks) > 0 {
+		index := 0
+		target := todaysTasks[len(todaysTasks)-1]
+		for i, v := range tm.Items {
+			if target.Task == v.Task && dayEqual(v.Day, target.Day) {
+				index = i
+				break
+			}
+		}
+		logrus.Info("Inserting at index ", index+1)
+		tm.Items = InsertIntoSliceAtIndex(tm.Items, newItem, index+1)
+	} else {
+		tm.Items = append(tm.Items, newItem)
+	}
 
 	// tm.Items = append(tm.Items)
 }
