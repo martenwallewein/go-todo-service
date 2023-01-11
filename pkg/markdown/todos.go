@@ -24,16 +24,17 @@ type TodoMonth struct {
 }
 
 type TodoItem struct {
-	Done bool
-	Task string
-	Day  time.Time
+	Done       bool
+	InProgress bool
+	Task       string
+	Day        time.Time
 }
 
 func (tm *TodoMonth) GetTodaysTasks() []*TodoItem {
 	todaysTasks := make([]*TodoItem, 0)
 	now := time.Now()
 	for _, item := range tm.Items {
-		if dayEqual(item.Day, now) {
+		if DayEqual(item.Day, now) {
 			todaysTasks = append(todaysTasks, item)
 		}
 	}
@@ -41,16 +42,31 @@ func (tm *TodoMonth) GetTodaysTasks() []*TodoItem {
 	return todaysTasks
 }
 
-func (tm *TodoMonth) CompleteTodayTask(task string) bool {
+func (tm *TodoMonth) GetFullTask(task string) *TodoItem {
 	today := time.Now()
 	for _, item := range tm.Items {
-		if !dayEqual(item.Day, today) {
+		if !DayEqual(item.Day, today) {
 			continue
 		}
 
 		logrus.Warn("Checking ", item.Task, " to match ", task, " with result ", strings.Index(item.Task, task))
 		if strings.Index(item.Task, task) >= 0 {
-			item.Done = true
+			return item
+		}
+	}
+	return nil
+}
+
+func (tm *TodoMonth) StartTodayTask(task string) bool {
+	today := time.Now()
+	for _, item := range tm.Items {
+		if !DayEqual(item.Day, today) {
+			continue
+		}
+
+		logrus.Warn("Checking ", item.Task, " to match ", task, " with result ", strings.Index(item.Task, task))
+		if strings.Index(item.Task, task) >= 0 {
+			item.InProgress = true
 			// Since these are not pointers we need to update the element
 			// tm.Items[index] = item
 			return false
@@ -58,11 +74,33 @@ func (tm *TodoMonth) CompleteTodayTask(task string) bool {
 	}
 
 	// Just add and complete it
-	tm.AddTodayTask(task, true)
+	tm.AddTodayTask(task, false, true)
 	return true
 }
 
-func dayEqual(v, today time.Time) bool {
+func (tm *TodoMonth) CompleteTodayTask(task string) bool {
+	today := time.Now()
+	for _, item := range tm.Items {
+		if !DayEqual(item.Day, today) {
+			continue
+		}
+
+		logrus.Warn("Checking ", item.Task, " to match ", task, " with result ", strings.Index(item.Task, task))
+		if strings.Index(item.Task, task) >= 0 {
+			item.Done = true
+			item.InProgress = false
+			// Since these are not pointers we need to update the element
+			// tm.Items[index] = item
+			return false
+		}
+	}
+
+	// Just add and complete it
+	tm.AddTodayTask(task, true, false)
+	return true
+}
+
+func DayEqual(v, today time.Time) bool {
 	return v.Day() == today.Day() && v.Month() == today.Month() && v.Year() == today.Year()
 }
 
@@ -84,22 +122,23 @@ func InsertIntoSliceAtIndex[T any](destination []T, element T, index int) []T {
 	return destination
 }
 
-func (tm *TodoMonth) AddTodayTask(task string, completed bool) {
+func (tm *TodoMonth) AddTodayTask(task string, completed bool, inProgress bool) {
 
 	// TODO: Not numbered tasks
 
 	todaysTasks := tm.GetTodaysTasks()
 	num := len(todaysTasks) + 1
 	newItem := &TodoItem{
-		Done: completed,
-		Task: fmt.Sprintf("%d) %s", num, task),
-		Day:  time.Now(),
+		Done:       completed,
+		Task:       fmt.Sprintf("%d) %s", num, task),
+		Day:        time.Now(),
+		InProgress: inProgress,
 	}
 	if len(todaysTasks) > 0 {
 		index := 0
 		target := todaysTasks[len(todaysTasks)-1]
 		for i, v := range tm.Items {
-			if target.Task == v.Task && dayEqual(v.Day, target.Day) {
+			if target.Task == v.Task && DayEqual(v.Day, target.Day) {
 				index = i
 				break
 			}
@@ -145,6 +184,8 @@ func (tl *TodoList) WriteToFile(file string) error {
 		for _, goal := range month.Goals {
 			if goal.Done {
 				str += fmt.Sprintf("    - [x] %s\n", goal.Task)
+			} else if goal.InProgress {
+				str += fmt.Sprintf("    - [0] %s\n", goal.Task)
 			} else {
 				str += fmt.Sprintf("    - [ ] %s\n", goal.Task)
 			}
@@ -160,6 +201,8 @@ func (tl *TodoList) WriteToFile(file string) error {
 
 			if todo.Done {
 				str += fmt.Sprintf("        - [x] %s\n", todo.Task)
+			} else if todo.InProgress {
+				str += fmt.Sprintf("        - [0] %s\n", todo.Task)
 			} else {
 				str += fmt.Sprintf("        - [ ] %s\n", todo.Task)
 			}
@@ -258,14 +301,18 @@ func ParseMarkdown(file string) (*TodoList, error) {
 		} else {
 			res := strings.Trim(line, "")
 			done := strings.Index(line, "[x]") >= 0
+			inProgress := strings.Index(line, "[0]") >= 0
 			res = strings.ReplaceAll(res, "- [ ] ", "")
 			res = strings.ReplaceAll(res, "- [x] ", "")
+			res = strings.ReplaceAll(res, "- [0] ", "")
 			res = strings.Trim(res, " ")
 			td := &TodoItem{
-				Done: done,
-				Task: res,
-				Day:  curDay,
+				Done:       done,
+				InProgress: inProgress,
+				Task:       res,
+				Day:        curDay,
 			}
+			logrus.Warn(*td)
 			if goalsMode {
 				todoMonth.Goals = append(todoMonth.Goals, td)
 			} else {

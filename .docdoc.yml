@@ -7,6 +7,6 @@ stacks:
       telegram-todo-service:
         name: telegram-todo-service
         repopath: .
-        version: 1.0.8
+        version: 1.0.9
         path: .
     name: telegram-todo-service

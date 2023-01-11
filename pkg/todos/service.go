@@ -68,7 +68,7 @@ func (ts *TodoService) AddTodayTodo(task string) error {
 	}
 
 	month := tl.GetCurrentMonth()
-	month.AddTodayTask(task, false)
+	month.AddTodayTask(task, false, false)
 
 	err = ts.SaveTodoList(tl)
 	if err != nil {
@@ -95,6 +95,47 @@ func (ts *TodoService) CompleteTodayTodo(task string) error {
 
 	month := tl.GetCurrentMonth()
 	month.CompleteTodayTask(task)
+
+	err = ts.SaveTodoList(tl)
+	if err != nil {
+		return err
+	}
+
+	err = ts.CommitAndPushRepo(repo, fmt.Sprintf("Complete task %s", task))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ts *TodoService) GetFullTask(task string) (*markdown.TodoItem, error) {
+	_, err := ts.PrepareRepo()
+	if err != nil {
+		return nil, err
+	}
+	tl, err := ts.LoadTodoList()
+	if err != nil {
+		return nil, err
+	}
+
+	month := tl.GetCurrentMonth()
+	item := month.GetFullTask(task)
+	return item, nil
+}
+
+func (ts *TodoService) StartTodayTodo(task string) error {
+	repo, err := ts.PrepareRepo()
+	if err != nil {
+		return err
+	}
+	tl, err := ts.LoadTodoList()
+	if err != nil {
+		return err
+	}
+
+	month := tl.GetCurrentMonth()
+	month.StartTodayTask(task)
 
 	err = ts.SaveTodoList(tl)
 	if err != nil {

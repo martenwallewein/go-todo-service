@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/martenwallewein/todo-service/pkg/markdown"
+	"github.com/martenwallewein/todo-service/pkg/timetracking"
 	"github.com/martenwallewein/todo-service/pkg/todos"
 	"github.com/sirupsen/logrus"
 )
@@ -15,8 +16,9 @@ func path(endpoint string) string {
 }
 
 type RESTApiV1 struct {
-	router      *gin.Engine
-	todoService *todos.TodoService
+	router              *gin.Engine
+	todoService         *todos.TodoService
+	timeTrackingService *timetracking.TimeTrackingService
 }
 
 func (api *RESTApiV1) Serve(addr string) error {
@@ -26,12 +28,15 @@ func (api *RESTApiV1) Serve(addr string) error {
 func NewRESTApiV1(repoPath string) *RESTApiV1 {
 	router := gin.Default()
 	todoService := todos.NewTodoService(repoPath)
+	timeTrackingService := timetracking.NewTimeTrackingService(repoPath)
 	api := &RESTApiV1{
 		router,
 		todoService,
+		timeTrackingService,
 	}
 
 	router.POST(path("todos"), api.CompleteTodayTodo)
+	router.POST(path("todos/start"), api.StartTodayTodo)
 	router.GET(path("todos"), api.GetTodaysTodos)
 	router.PUT(path("todos"), api.AddTodayTodo)
 
@@ -82,6 +87,38 @@ func (api *RESTApiV1) CompleteTodayTodo(c *gin.Context) {
 	if err := api.todoService.CompleteTodayTodo(todo.Task); err != nil {
 		logrus.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add project"})
+	}
+
+	if err := api.timeTrackingService.CompleteTodayTimeTracking(todo.Task); err != nil {
+		logrus.Error(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to complete timetracking"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"task": todo.Task,
+	})
+}
+
+func (api *RESTApiV1) StartTodayTodo(c *gin.Context) {
+	var todo markdown.TodoItem
+	if err := c.ShouldBindJSON(&todo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := api.todoService.StartTodayTodo(todo.Task); err != nil {
+		logrus.Error(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start todo"})
+	}
+
+	item, err := api.todoService.GetFullTask(todo.Task)
+	if err != nil {
+		logrus.Error(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start todo"})
+	}
+	if err := api.timeTrackingService.StartTodayTimeTracking(item.Task); err != nil {
+		logrus.Error(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start timetracking"})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
